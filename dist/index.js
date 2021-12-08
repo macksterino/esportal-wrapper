@@ -11,11 +11,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Esportal = void 0;
 const axios_1 = require("axios");
-const uuid_1 = require("uuid");
 class Esportal {
     constructor() {
         this.baseURL = "https://esportal.com/api/";
-        this.auth = (0, uuid_1.v4)();
     }
     createRequest(url) {
         return __awaiter(this, void 0, void 0, function* () {

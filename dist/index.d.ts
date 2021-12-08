@@ -1,7 +1,6 @@
 import { Match, TeamProfile, UserProfile } from "./interfaces/interfaces";
 export declare class Esportal {
     private readonly baseURL;
-    private readonly auth;
     constructor();
     private createRequest;
     /**
