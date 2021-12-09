@@ -16,6 +16,9 @@ A simple node.js wrapper for the Esportal API. It provides a simple interface fo
 *Returns all available information for the specified match. The id is the match lobby id.*
 - `fetchMatch(id: number): Promise<Match>`
 
+*Returns all available information for the specified gather. The id is the gather lobby id.*
+- `fetchGather(id: number): Promise<Gather>`
+
 ### Examples
 For TypeScript:
 ```
