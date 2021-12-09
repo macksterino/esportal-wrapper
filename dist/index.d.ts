@@ -21,5 +21,10 @@ export declare class Esportal {
      * @returns all the stats from an ongoing or completed match.
      */
     fetchMatch(id: number): Promise<Match>;
+    /**
+     *
+     * @param id the gather id.
+     * @returns all the stats from a yet-to-begin or ongoing gather.
+     */
     fetchGather(id: number): Promise<Gather>;
 }

@@ -272,6 +272,11 @@ class Esportal {
             };
         });
     }
+    /**
+     *
+     * @param id the gather id.
+     * @returns all the stats from a yet-to-begin or ongoing gather.
+     */
     fetchGather(id) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
