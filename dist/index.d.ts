@@ -1,4 +1,4 @@
-import { Match, TeamProfile, UserProfile } from "./interfaces/interfaces";
+import { Gather, Match, TeamProfile, UserProfile } from "./interfaces/interfaces";
 export declare class Esportal {
     private readonly baseURL;
     constructor();
@@ -21,4 +21,5 @@ export declare class Esportal {
      * @returns all the stats from an ongoing or completed match.
      */
     fetchMatch(id: number): Promise<Match>;
+    fetchGather(id: number): Promise<Gather>;
 }

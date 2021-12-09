@@ -177,24 +177,43 @@ export declare type MatchPlayer = {
     elo_change: number;
     dropin: number;
     dropped: number;
+    picked?: boolean;
+    joined?: number;
+    ready?: boolean;
+    gather_group_id?: number;
+    gather_group_creator?: boolean;
+    friends_with_creator?: boolean;
+    gathers_played?: number;
+    gather_drops?: number;
 };
 export declare type Gather = {
     general: {
-        id: number;
+        gather_id: number;
+        match_id: number;
         name: string;
         creator: {
             id: number;
-            wins: number;
-            losses: number;
             gathers_created: number;
             gathers_played: number;
             gather_drops: number;
-            thumbs_up: number;
-            thumbs_down: number;
-            mvps: number;
         };
         region_id: number;
         country_id: number;
         map_id: number;
+        active: boolean;
+        date: number;
+        state: number;
+        ready_check_started: number;
+        server: string;
     };
+    stats: {
+        total_average_elo: number;
+        team1_average_elo: number;
+        team2_average_elo: number;
+        team1_score: number;
+        team2_score: number;
+        mvp_user_id: number;
+        duration: number;
+    };
+    players: Array<MatchPlayer>;
 };

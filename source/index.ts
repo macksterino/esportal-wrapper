@@ -1,5 +1,5 @@
 import { default as libaxios } from "axios";
-import { Activity, Friend, LatestMatch, Match, MatchDrop, MatchPlayer, Member, OldUsername, TeamProfile, UserProfile } from "./interfaces/interfaces";
+import { Activity, Friend, Gather, LatestMatch, Match, MatchDrop, MatchPlayer, Member, OldUsername, TeamProfile, UserProfile } from "./interfaces/interfaces";
 
 export class Esportal {
 	private readonly baseURL: string;
@@ -276,6 +276,79 @@ export class Esportal {
 				host: match.gotv_host,
 				port: match.gotv_port
 			}
+		}
+	}
+	/**
+	 *
+	 * @param id the gather id.
+	 * @returns all the stats from a yet-to-begin or ongoing gather.
+	 */
+	public async fetchGather(id: number): Promise<Gather> {
+		const url = `${this.baseURL}gather/get?id=${id}`;
+		const gather = await this.createRequest(url);
+
+		const players: Array<MatchPlayer> = [];
+		if (gather.players !== null) {
+			for (const player of gather.players) {
+				players.push(
+					{
+						id: player.id,
+						username: player.username,
+						team: player.team,
+						score: player.score,
+						kills: player.kills,
+						deaths: player.deaths,
+						assists: player.assists,
+						headshots: player.headshots,
+						successful_opening_rounds: player.successful_opening_rounds,
+						bomb_plants: player.bomb_plants,
+						bomb_defuses: player.bomb_defuses,
+						elo_change: player.elo_change ?? null,
+						dropin: player.dropin,
+						dropped: player.dropped,
+						picked: player.picked,
+						joined: player.inserted,
+						ready: player.ready,
+						gather_group_id: player.gather_group_id,
+						gather_group_creator: player.gather_group_creator,
+						friends_with_creator: player.friends_with_creator,
+						gathers_played: player.gathers_played,
+						gather_drops: player.gather_drops
+					}
+				);
+			}
+		}
+
+		return {
+			general: {
+				gather_id: gather.id,
+				match_id: gather.match_id,
+				name: gather.name,
+				creator: {
+					id: gather.creator.id,
+					gathers_created: gather.creator.gathers_created,
+					gathers_played: gather.creator.gathers_played,
+					gather_drops: gather.creator.gather_drops
+				},
+				region_id: gather.region_id,
+				country_id: gather.country_id,
+				map_id: gather.map_id,
+				active: gather.active,
+				date: gather.inserted,
+				state: gather.state,
+				ready_check_started: gather.ready_check_started,
+				server: gather.server
+			},
+			stats: {
+				total_average_elo: gather.elo.avg_elo,
+				team1_average_elo: gather.elo.team1_avg_elo,
+				team2_average_elo: gather.elo.team2_avg_elo,
+				team1_score: gather.team1_score,
+				team2_score: gather.team2_score,
+				mvp_user_id: gather.mvp_user_id,
+				duration: gather.duration
+			},
+			players: players
 		}
 	}
 }
