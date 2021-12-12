@@ -43,3 +43,22 @@ const esportal = new libesportal.Esportal();
 	console.log(user);
 })();
 ```
+
+Using filters/excludes:
+```
+import { Esportal, EsportalOptions } from "@macksterino/esportal-wrapper";
+
+// this will exclude friends from the query when fetching a userprofile
+const options: EsportalOptions = {
+	exclude: {
+		friends: true
+	}
+}
+
+const esportal = new Esportal(options);
+
+(async () => {
+	const user = await esportal.fetchUserProfile("mankan");
+	console.log(user);
+})();
+```
