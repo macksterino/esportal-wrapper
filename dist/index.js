@@ -15,8 +15,25 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Esportal = void 0;
 const axios_1 = __importDefault(require("axios"));
 class Esportal {
-    constructor() {
-        this.baseURL = "https://esportal.com/api/";
+    constructor(options) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+        this.options = options;
+        axios_1.default.defaults.baseURL = "https://esportal.com/api";
+        this.options = {
+            exclude: {
+                friends: this.isUndefinedOrFalse((_a = this.options) === null || _a === void 0 ? void 0 : _a.exclude.friends),
+                username_history: this.isUndefinedOrFalse((_b = this.options) === null || _b === void 0 ? void 0 : _b.exclude.username_history),
+                current_match: this.isUndefinedOrFalse((_c = this.options) === null || _c === void 0 ? void 0 : _c.exclude.current_match),
+                bans: this.isUndefinedOrFalse((_d = this.options) === null || _d === void 0 ? void 0 : _d.exclude.bans),
+                team: this.isUndefinedOrFalse((_e = this.options) === null || _e === void 0 ? void 0 : _e.exclude.team),
+                rank: this.isUndefinedOrFalse((_f = this.options) === null || _f === void 0 ? void 0 : _f.exclude.rank),
+                twitch: this.isUndefinedOrFalse((_g = this.options) === null || _g === void 0 ? void 0 : _g.exclude.twitch),
+                match_drops: this.isUndefinedOrFalse((_h = this.options) === null || _h === void 0 ? void 0 : _h.exclude.match_drops),
+                users: this.isUndefinedOrFalse((_j = this.options) === null || _j === void 0 ? void 0 : _j.exclude.users),
+                activities: this.isUndefinedOrFalse((_k = this.options) === null || _k === void 0 ? void 0 : _k.exclude.activities),
+                latest_matches: this.isUndefinedOrFalse((_l = this.options) === null || _l === void 0 ? void 0 : _l.exclude.latest_matches)
+            }
+        };
     }
     createRequest(url) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -25,16 +42,22 @@ class Esportal {
             return response;
         });
     }
+    isUndefinedOrFalse(value) {
+        return (value === undefined || value === false) ? 1 : 0;
+    }
     /**
      *
      * @param identifier the id OR username of a user.
      * @returns a user profile and all the underlying stats.
      */
     fetchUserProfile(identifier) {
-        var _a, _b;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
         return __awaiter(this, void 0, void 0, function* () {
-            const filter = (typeof identifier === "string") ? "username" : "id";
-            const url = `${this.baseURL}user_profile/get?${filter}=${identifier}&friends=1&username_history=1&current_match=1&bans=1&team=1&rank=1&twitch=1&match_drops=1`;
+            const opts = {
+                param: (typeof identifier === "string") ? "username" : "id",
+                show: (_a = this.options) === null || _a === void 0 ? void 0 : _a.exclude
+            };
+            const url = `/user_profile/get?_=1&${opts.param}=${identifier}&friends=${(_b = opts.show) === null || _b === void 0 ? void 0 : _b.friends}&username_history=${(_c = opts.show) === null || _c === void 0 ? void 0 : _c.username_history}&current_match=${(_d = opts.show) === null || _d === void 0 ? void 0 : _d.current_match}&bans=${(_e = opts.show) === null || _e === void 0 ? void 0 : _e.bans}&team=${(_f = opts.show) === null || _f === void 0 ? void 0 : _f.team}&rank=${(_g = opts.show) === null || _g === void 0 ? void 0 : _g.rank}&twitch=${(_h = opts.show) === null || _h === void 0 ? void 0 : _h.twitch}&match_drops=${(_j = opts.show) === null || _j === void 0 ? void 0 : _j.match_drops}`;
             const user = yield this.createRequest(url);
             const friends = [];
             if (user.friends !== null) {
@@ -113,17 +136,17 @@ class Esportal {
                     elo: user.elo
                 },
                 current_match: {
-                    id: user.current_match.id,
-                    team: user.current_match.team,
-                    team1_score: user.current_match.team1_score,
-                    team2_score: user.current_match.team2_score,
-                    gather_id: user.current_match.gather_id
+                    id: (_k = user.current_match.id) !== null && _k !== void 0 ? _k : null,
+                    team: (_l = user.current_match.team) !== null && _l !== void 0 ? _l : null,
+                    team1_score: (_m = user.current_match.team1_score) !== null && _m !== void 0 ? _m : null,
+                    team2_score: (_o = user.current_match.team2_score) !== null && _o !== void 0 ? _o : null,
+                    gather_id: (_p = user.current_match.gather_id) !== null && _p !== void 0 ? _p : null
                 },
                 friends: friends,
                 old_usernames: oldUsernames,
                 team: {
-                    id: (_a = user.team.id) !== null && _a !== void 0 ? _a : null,
-                    name: (_b = user.team.name) !== null && _b !== void 0 ? _b : null
+                    id: (_q = user === null || user === void 0 ? void 0 : user.team) === null || _q === void 0 ? void 0 : _q.id,
+                    name: (_r = user === null || user === void 0 ? void 0 : user.team) === null || _r === void 0 ? void 0 : _r.name
                 },
                 match_drops: matchDrops
             };
@@ -135,9 +158,13 @@ class Esportal {
      * @returns a team profile and all the underlying stats.
      */
     fetchTeamProfile(identifier) {
+        var _a, _b, _c, _d;
         return __awaiter(this, void 0, void 0, function* () {
-            const filter = (typeof identifier === "string") ? "slug" : "id";
-            const url = `${this.baseURL}team/get?${filter}=${identifier}&users=1&activities=1&latest_matches=1`;
+            const opts = {
+                param: (typeof identifier === "string") ? "slug" : "id",
+                show: (_a = this.options) === null || _a === void 0 ? void 0 : _a.exclude
+            };
+            const url = `/team/get?${opts.param}=${identifier}&users=${(_b = opts.show) === null || _b === void 0 ? void 0 : _b.users}&activities=${(_c = opts.show) === null || _c === void 0 ? void 0 : _c.activities}&latest_matches=${(_d = opts.show) === null || _d === void 0 ? void 0 : _d.latest_matches}`;
             const team = yield this.createRequest(url);
             const members = [];
             if (team.members !== null) {
@@ -151,15 +178,17 @@ class Esportal {
                 }
             }
             const activities = [];
-            for (const activity of team.activities) {
-                activities.push({
-                    type: activity.type,
-                    user: {
-                        id: activity.user.id,
-                        username: activity.user.username
-                    },
-                    date: activity.inserted
-                });
+            if (team.activities !== null) {
+                for (const activity of team.activities) {
+                    activities.push({
+                        type: activity.type,
+                        user: {
+                            id: activity.user.id,
+                            username: activity.user.username
+                        },
+                        date: activity.inserted
+                    });
+                }
             }
             const latestMatches = [];
             if (team.latest_matches !== null) {
@@ -218,7 +247,7 @@ class Esportal {
      */
     fetchMatch(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            const url = `${this.baseURL}match/get?_=1&id=${id}`;
+            const url = `/match/get?_=1&id=${id}`;
             const match = yield this.createRequest(url);
             const players = [];
             for (const player of match.players) {
@@ -280,7 +309,7 @@ class Esportal {
     fetchGather(id) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            const url = `${this.baseURL}gather/get?id=${id}`;
+            const url = `/gather/get?id=${id}`;
             const gather = yield this.createRequest(url);
             const players = [];
             if (gather.players !== null) {

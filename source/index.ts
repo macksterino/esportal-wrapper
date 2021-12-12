@@ -1,11 +1,58 @@
 import { default as libaxios } from "axios";
 import { Activity, Friend, Gather, LatestMatch, Match, MatchDrop, MatchPlayer, Member, OldUsername, TeamProfile, UserProfile } from "./interfaces/interfaces";
 
-export class Esportal {
-	private readonly baseURL: string;
+export type EsportalOptions = {
+	exclude: Partial<EsportalExclude>
+}
 
-	constructor() {
-		this.baseURL = "https://esportal.com/api/";
+/**
+ * Setting a value to true will exclude the parameter from the query. If it is not defined it will default to false.
+ */
+export type EsportalExclude = {
+	/** Setting this to true will remove friends from the query when fetching a userprofile. */
+	friends: boolean | number,
+	/** Setting this to true will remove old usernames from the query when fetching a userprofile. */
+	username_history: boolean | number,
+	/** Setting this to true will avoid fetching match stats if the user is in a match. */
+	current_match: boolean | number,
+	/** Setting this to true will remove bans from the query when fetching a userprofile. */
+	bans: boolean | number,
+	/** Setting this to true will prevent the query from including a user's team details. */
+	team: boolean | number,
+	/** Setting this to true will prevent fetching the user's rank. */
+	rank: boolean | number,
+	/** Setting this to true will prevent the query from fetching anything related to Twitch. */
+	twitch: boolean | number,
+	/** Setting this to true will remove all of a user's match drops from the query when fetching a userprofile. */
+	match_drops: boolean | number,
+	/** Setting this to true will prevent the query from fetching a team's members. */
+	users: boolean | number,
+	/** Setting this to true will prevent the query from fetching a team's activities. */
+	activities: boolean | number,
+	/** Setting this to true will prevent the query from fetching a team's latest matches. */
+	latest_matches: boolean | number
+}
+
+export class Esportal {
+
+	constructor(private options?: EsportalOptions) {
+		libaxios.defaults.baseURL = "https://esportal.com/api";
+
+		this.options = {
+			exclude: {
+				friends: this.isUndefinedOrFalse(this.options?.exclude.friends),
+				username_history: this.isUndefinedOrFalse(this.options?.exclude.username_history),
+				current_match: this.isUndefinedOrFalse(this.options?.exclude.current_match),
+				bans: this.isUndefinedOrFalse(this.options?.exclude.bans),
+				team: this.isUndefinedOrFalse(this.options?.exclude.team),
+				rank: this.isUndefinedOrFalse(this.options?.exclude.rank),
+				twitch: this.isUndefinedOrFalse(this.options?.exclude.twitch),
+				match_drops: this.isUndefinedOrFalse(this.options?.exclude.match_drops),
+				users: this.isUndefinedOrFalse(this.options?.exclude.users),
+				activities: this.isUndefinedOrFalse(this.options?.exclude.activities),
+				latest_matches: this.isUndefinedOrFalse(this.options?.exclude.latest_matches)
+			}
+		}
 	}
 
 	private async createRequest(url: string): Promise<any> {
@@ -14,14 +61,21 @@ export class Esportal {
 
 		return response;
 	}
+	private isUndefinedOrFalse(value: boolean | number | undefined): number {
+		return (value === undefined || value === false) ? 1 : 0;
+	}
 	/**
 	 *
 	 * @param identifier the id OR username of a user.
 	 * @returns a user profile and all the underlying stats.
 	 */
 	public async fetchUserProfile(identifier: string | number): Promise<UserProfile> {
-		const filter = (typeof identifier === "string") ? "username" : "id";
-		const url = `${this.baseURL}user_profile/get?${filter}=${identifier}&friends=1&username_history=1&current_match=1&bans=1&team=1&rank=1&twitch=1&match_drops=1`;
+		const opts = {
+			param: (typeof identifier === "string") ? "username" : "id",
+			show: this.options?.exclude
+		}
+
+		const url = `/user_profile/get?_=1&${opts.param}=${identifier}&friends=${opts.show?.friends}&username_history=${opts.show?.username_history}&current_match=${opts.show?.current_match}&bans=${opts.show?.bans}&team=${opts.show?.team}&rank=${opts.show?.rank}&twitch=${opts.show?.twitch}&match_drops=${opts.show?.match_drops}`;
 		const user = await this.createRequest(url);
 
 		const friends: Array<Friend> = [];
@@ -110,17 +164,17 @@ export class Esportal {
 				elo: user.elo
 			},
 			current_match: {
-				id: user.current_match.id,
-				team: user.current_match.team,
-				team1_score: user.current_match.team1_score,
-				team2_score: user.current_match.team2_score,
-				gather_id: user.current_match.gather_id
+				id: user.current_match.id ?? null,
+				team: user.current_match.team ?? null,
+				team1_score: user.current_match.team1_score ?? null,
+				team2_score: user.current_match.team2_score ?? null,
+				gather_id: user.current_match.gather_id ?? null
 			},
 			friends: friends,
 			old_usernames: oldUsernames,
 			team: {
-				id: user.team.id ?? null,
-				name: user.team.name ?? null
+				id: user?.team?.id,
+				name: user?.team?.name
 			},
 			match_drops: matchDrops
 		};
@@ -131,8 +185,12 @@ export class Esportal {
 	 * @returns a team profile and all the underlying stats.
 	 */
 	public async fetchTeamProfile(identifier: string | number): Promise<TeamProfile> {
-		const filter = (typeof identifier === "string") ? "slug" : "id";
-		const url = `${this.baseURL}team/get?${filter}=${identifier}&users=1&activities=1&latest_matches=1`;
+		const opts = {
+			param: (typeof identifier === "string") ? "slug" : "id",
+			show: this.options?.exclude
+		}
+
+		const url = `/team/get?${opts.param}=${identifier}&users=${opts.show?.users}&activities=${opts.show?.activities}&latest_matches=${opts.show?.latest_matches}`;
 		const team = await this.createRequest(url);
 
 		const members: Array<Member> = [];
@@ -150,17 +208,19 @@ export class Esportal {
 		}
 
 		const activities: Array<Activity> = [];
-		for (const activity of team.activities) {
-			activities.push(
-				{
-					type: activity.type,
-					user: {
-						id: activity.user.id,
-						username: activity.user.username
-					},
-					date: activity.inserted
-				}
-			);
+		if (team.activities !== null) {
+			for (const activity of team.activities) {
+				activities.push(
+					{
+						type: activity.type,
+						user: {
+							id: activity.user.id,
+							username: activity.user.username
+						},
+						date: activity.inserted
+					}
+				);
+			}
 		}
 
 		const latestMatches: Array<LatestMatch> = [];
@@ -221,7 +281,7 @@ export class Esportal {
 	 * @returns all the stats from an ongoing or completed match.
 	 */
 	public async fetchMatch(id: number): Promise<Match> {
-		const url = `${this.baseURL}match/get?_=1&id=${id}`;
+		const url = `/match/get?_=1&id=${id}`;
 		const match = await this.createRequest(url);
 
 		const players: Array<MatchPlayer> = [];
@@ -284,7 +344,7 @@ export class Esportal {
 	 * @returns all the stats from a yet-to-begin or ongoing gather.
 	 */
 	public async fetchGather(id: number): Promise<Gather> {
-		const url = `${this.baseURL}gather/get?id=${id}`;
+		const url = `/gather/get?id=${id}`;
 		const gather = await this.createRequest(url);
 
 		const players: Array<MatchPlayer> = [];
